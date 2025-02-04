@@ -3,7 +3,7 @@
 #include "hardware/timer.h"
 #include "hardware/gpio.h"
 
-// Definição dos pinos
+// Define os pinos dos LEDs e Botão (configurados conforme o Wokwi/BitDogLab)
 #define LED_PIN_RED    11
 #define LED_PIN_YELLOW 12
 #define LED_PIN_GREEN  13
@@ -46,11 +46,10 @@ int64_t sequence_alarm_callback(alarm_id_t id, void *user_data) {
 }
 
 /**
- * Callback de interrupção do botão.
- * Quando o botão é pressionado (borda de descida, considerando pull-up),
+ * Callback de interrupção do botão. Quando o botão é pressionado,
  * a sequência de LEDs é iniciada, desde que não haja uma sequência em andamento.
  */
-void gpio_callback(uint gpio, uint32_t events) {
+void gpio_irq_handler(uint gpio, uint32_t events) {
     if (gpio == BUTTON_PIN && !sequence_in_progress) {
         // Inicia a sequência
         sequence_in_progress = true;
@@ -85,15 +84,14 @@ int main() {
     gpio_set_dir(BUTTON_PIN, GPIO_IN);
     gpio_pull_up(BUTTON_PIN);
     
-    // Registra o callback de interrupção para o botão (borda de descida)
-    gpio_set_irq_enabled_with_callback(BUTTON_PIN, GPIO_IRQ_EDGE_FALL, true, &gpio_callback);
+    // Registra o callback de interrupção para o botão
+    gpio_set_irq_enabled_with_callback(BUTTON_PIN, GPIO_IRQ_EDGE_FALL, true, &gpio_irq_handler);
     
     // Loop principal: pode ser usado para outras tarefas ou apenas manter o programa em execução
     while (true) {
         sleep_ms(1000);
-        // Opcional: imprimir status ou executar outras rotinas
-        // printf("Loop principal executando...\n");
+        // Opcional: imprimir status
+        printf("Loop principal executando...\n");
     }
-    
     return 0;
 }
